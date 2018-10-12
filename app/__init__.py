@@ -10,7 +10,11 @@ def create_app():
     register_blueprint(app)
 
     db.init_app(app)
-    db.create_all(app=app)
+    # db.create_all(app=app)
+    # 同样的功能,将current_app推入栈中，通过源码可以知道
+    # 或者在构造函数中将app传入，db = SQLAlchemy(app)
+    with app.app_context():
+        db.create_all()
     return app
 
 
