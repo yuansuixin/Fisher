@@ -1,0 +1,16 @@
+DROP TABLE IF EXISTS  `book`;
+CREATE TABLE `book` (
+  `id` int(12) NOT NULL AUTO_INCREMENT,
+  `title` varchar(50) NOT NULL,
+  `author` varchar(30) DEFAULT '',
+  `binding` varchar(20) DEFAULT '',
+  `publisher` varchar(50) NOT NULL,
+  `price` varchar(20) DEFAULT '',
+  `pages` int(32),   -- 下架时间
+  `pubdate` varchar(20) DEFAULT '',
+  `isbn` varchar(20) DEFAULT '',
+  `summary`  varchar(1000) DEFAULT '',
+  `image`  varchar(50) DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `idx_isbn` (`isbn`)
+) ENGINE=InnoDB AUTO_INCREMENT=13033 DEFAULT CHARSET=utf8;
