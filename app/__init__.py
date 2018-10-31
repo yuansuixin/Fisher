@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 from flask import Flask
+from flask_login import LoginManager
+
 from app.models.book import db
 
+
+login_manage = LoginManager()
 
 def create_app():
     app = Flask(__name__)
@@ -10,6 +14,9 @@ def create_app():
     register_blueprint(app)
 
     db.init_app(app)
+    login_manage.init_app(app)
+    login_manage.login_view = 'web.login'
+    login_manage.login_message = "请先登录或注册"
     # db.create_all(app=app)
     # 同样的功能,将current_app推入栈中，通过源码可以知道
     # 或者在构造函数中将app传入，db = SQLAlchemy(app)

@@ -9,7 +9,18 @@ class BookViewModel:
         self.image = book['image']
         self.price = book['price']
         self.summary = book['summary']
+        self.isbn = book['isbn']
         self.pages = book['pages']
+
+    @property
+    def intro(self):
+        '''
+        过滤掉作者，出版社，价格为null的情况
+        :return:
+        '''
+        intros = filter(lambda x:True if x else False,
+                        [self.author, self.publisher, self.price])
+        return ' / '.join(intros)
 
 
 class BookCollection:
@@ -22,13 +33,6 @@ class BookCollection:
         self.total = yushu_book.total
         self.keyword = keyword
         self.books = [BookViewModel(book) for book in yushu_book.books]
-
-
-
-
-
-
-
 
 
 

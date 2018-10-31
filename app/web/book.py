@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
 
 from ansible.modules.database.misc.redis import flush
 from flask import jsonify, app, request, render_template, current_app, flash
@@ -10,7 +9,7 @@ from . import web
 from app.libs.helper import is_isbn_or_key
 from app.spider.yushu_book import YuShuBook
 
-print('id为'+str(id(app))+'的APP注册路由')
+# print('id为'+str(id(app))+'的APP注册路由')
 
 
 @web.route('/book/search')
@@ -37,15 +36,25 @@ def search():
         books.fill(yushu_book, q)
         # return jsonify(books)
         # json.dumps(books, default=lambda o: o.__dict__)
-
     else:
         flush('搜索的关键字不符合要求')
         # return jsonify(form .errors)
-        return render_template('search_result.html', books=books)
+    return render_template('search_result.html', books=books)
+
 
 @web.route('/book/<isbn>/detail')
 def book_detail(isbn):
-    pass
+    yushu_book = YuShuBook()
+    yushu_book.search_by_isbn(isbn)
+    # 数据存在books字段里
+    book = BookViewModel(yushu_book.first)
+
+    return render_template('book_detail.html', book=book, wishes=[], gifts=[])
+
+
+
+
+
 
 
 @web.route('/test')
