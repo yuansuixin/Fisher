@@ -14,10 +14,10 @@ __author__ = '七月'
 def register():
     form = RegisterForm(request.form)
     if request.method == 'POST' and form.validate():
-        user = User()
-        user.set_attrs(form.data)
-        db.session.add(user)
-        db.session.commit()
+        with db.auto_commit():
+            user = User()
+            user.set_attrs(form.data)
+            db.session.add(user)
         return redirect(url_for('web.login'))
     return render_template('auth/register.html', form=form)
 
@@ -31,7 +31,7 @@ def login():
         # 存储的是一次性的cookie，关闭浏览器的时候就自动清空了,加上remember就可以成为长期的cookie，过期时间默认是365天
         #如果实现更改过期时间，可以在配置里配置
         next = request.args.get('next')
-        if not next and next.startwith('/'):   # 防止重定向攻击
+        if not next or next.startwith('/'):   # 防止重定向攻击
             next = url_for('web.index')
         return redirect(next)
     else:
