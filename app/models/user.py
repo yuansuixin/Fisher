@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
+from math import floor
 
+from flask import current_app
 from flask_login import UserMixin, login_manager
 from sqlalchemy import Column, Integer, String, Boolean, Float
 from werkzeug.security import generate_password_hash, check_password_hash
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
+from app.libs.enums import PendingStatus
 from app.libs.helper import is_isbn_or_key
-from app.models.base import Base
+from app.models.base import Base, db
+from app.models.drift import Drift
 from app.models.gift import Gift
 from app.models.wish import Wish
 from app.spider.yushu_book import YuShuBook
@@ -35,6 +40,15 @@ class User(UserMixin, Base):
     def check_password(self, raw):
         return check_password_hash(self._password, raw)
 
+    def can_send_drift(self):
+        if self.beans < 1:
+            return False
+        success_gifts_count = Gift.query.filter_by(
+            uid=self.id, launched=True).count()
+        success_receive_count = Drift.query.filter_by(request_id=self.id,
+                                                      pending=PendingStatus.success).count()
+        return True if floor(success_receive_count / 2) <= floor(success_gifts_count) else False
+
     # flask_login需要一个可以表示用户身份的字段，函数名字是固定的,usermixin里已经定义了，只需要继承就可以了
     # def get_id(self):
     #     return self.id
@@ -59,7 +73,33 @@ class User(UserMixin, Base):
         else:
             return False
 
+    def generate_token(self, expiration=600):
+        # 序列化器
+        s = Serializer(current_app.config['SECRET_KEY'],expiration)
+        temp = s.dumps({'id':self.id}).decode('utf-8')
+        return temp
 
+    @staticmethod
+    def reset_password(token, new_password):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token.encode('utf-8'))
+        except:
+            return False
+        uid = data.get('id')
+        with db.auto_commit():
+            user = User.query.get(uid)   # 可以直接使用get获取主键查询
+            user.password = new_password
+        return True
+
+    @property
+    def summary(self):
+        return dict(
+            nickname=self.nickname,
+            beans=self.beans,
+            email=self.email,
+            send_receive=str(self.send_count) + '/' + str(self.receive_counter)
+        )
 
 @login_manager.user_loader
 def get_user(uid):
